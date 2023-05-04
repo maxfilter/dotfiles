@@ -123,7 +123,9 @@ local lsp_server_keymaps = function(opts)
     vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
     vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
     vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
+    vim.keymap.set("n", "gi", vim.lsp.buf.implementation, opts)
     vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
+    vim.keymap.set("n", "<leader>di", vim.diagnostic.open_float, opts)
     vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
     vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
     vim.keymap.set("n", "<leader>fo", function()
@@ -136,7 +138,16 @@ end
 --------------------------------------------------------------------------------
 -- Language servers to install with Mason
 local lsp_servers = {
-    pylsp = {},
+    -- https://github.com/python-lsp/python-lsp-server/blob/develop/CONFIGURATION.md
+    pylsp = {
+        pylsp = {
+            plugins = {
+                mccabe = { enabled = false },
+                flake8 = { enabled = true, ignore = "E501" },
+                pycodestyle = { enabled = false },
+            }
+        },
+    },
     lua_ls = { Lua = { diagnostics = { globals = { "vim" } } } },
 }
 -- Styling
@@ -151,6 +162,14 @@ local lsp_server_handlers = {
     ["textDocument/signatureHelp"] = vim.lsp.with(
         vim.lsp.handlers.signature_help, lsp_ui_opts),
 }
+-- diagnostic boxes (warnings, errors, ...)
+vim.diagnostic.config({
+    virtual_text = false,    -- hide virtual text that appears to right
+    underline = true,
+    severity_sort = true,    -- show higher severity diagnostics first
+    update_in_insert = true, -- udpate diagnostic while in insert mode
+    float = lsp_ui_opts
+})
 -- Setup Mason and hook up to LSP
 require("mason").setup()
 require("mason-lspconfig").setup({
