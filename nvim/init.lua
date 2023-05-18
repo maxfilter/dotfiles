@@ -1,6 +1,13 @@
 -- Neovim config
 
 --------------------------------------------------------------------------------
+-- Globals
+--------------------------------------------------------------------------------
+-- Must be set before lazy.nvim
+vim.g.mapleader = ","
+vim.g.coq_settings = { auto_start = "shut-up" }
+
+--------------------------------------------------------------------------------
 -- Plugin manager (lazy.nvim)
 --------------------------------------------------------------------------------
 -- Auto-install lazy.nvim if not installed
@@ -16,10 +23,6 @@ if not vim.loop.fs_stat(lazypath) then
     })
 end
 vim.opt.rtp:prepend(lazypath)
-
--- set globals before lazy so mappings are correct
-vim.g.mapleader = ","
-vim.g.coq_settings = { auto_start = "shut-up" }
 
 require("lazy").setup({
     -- color themes
@@ -37,7 +40,7 @@ require("lazy").setup({
         "nvim-lualine/lualine.nvim",
         dependencies = { "nvim-tree/nvim-web-devicons" }
     },
-    -- treesitter (smart sytnac highlighting)
+    -- treesitter (smart sytnax highlighting)
     { "nvim-treesitter/nvim-treesitter",  build = ":tsupdate" },
     -- lsp
     { "williamboman/mason.nvim",          build = ":masonupdate" },
@@ -71,8 +74,9 @@ require("nvim-treesitter.configs").setup({
     ensure_installed = {
         "python",
         "bash",
+        "c",
         "markdown",
-        "markdown_inline"
+        "markdown_inline",
     },
     highlight = {
         enable = true
@@ -142,9 +146,9 @@ local lsp_servers = {
     pylsp = {
         pylsp = {
             plugins = {
-                mccabe = { enabled = false },
+                mccabe = { enabled = true },
                 flake8 = { enabled = true, ignore = "E501" },
-                pycodestyle = { enabled = false },
+                pycodestyle = { enabled = true },
             }
         },
     },
@@ -156,19 +160,20 @@ local lsp_ui_opts = {
     border = "single",
     style = "minimal",
 }
+-- LSP boxes
 local lsp_server_handlers = {
     ["textDocument/hover"] = vim.lsp.with(
         vim.lsp.handlers.hover, lsp_ui_opts),
     ["textDocument/signatureHelp"] = vim.lsp.with(
         vim.lsp.handlers.signature_help, lsp_ui_opts),
 }
--- diagnostic boxes (warnings, errors, ...)
+-- Diagnostic boxes (warnings, errors, ...)
 vim.diagnostic.config({
     virtual_text = false,    -- hide virtual text that appears to right
+    float = lsp_ui_opts,     -- use floating boxes instead, style like docs
     underline = true,
     severity_sort = true,    -- show higher severity diagnostics first
     update_in_insert = true, -- udpate diagnostic while in insert mode
-    float = lsp_ui_opts
 })
 -- Setup Mason and hook up to LSP
 require("mason").setup()
